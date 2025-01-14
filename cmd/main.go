@@ -39,7 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("加载配置失败: %v", err)
 	}
-	nodes, err := parser.ParseSubscription(string(subscriptionBytes), "clashx")
+	nodes, _ := parser.ParseSubscription(string(subscriptionBytes), "clashx")
 
 	conv := converter.NewClashConverter(&converter.BaseInfo{})
 

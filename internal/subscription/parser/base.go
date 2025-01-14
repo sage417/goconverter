@@ -70,6 +70,8 @@ func ParseSubscription(content string, format string) ([]*model.Node, error) {
 		for _, proxy := range clashConfig.Proxies {
 			node, _ := parser.Parse(proxy)
 			if node != nil {
+				node.AllowInsecure = proxy.SkipCertVerify
+				node.UDP = true
 				nodes = append(nodes, node)
 			}
 		}

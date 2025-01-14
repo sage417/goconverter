@@ -105,7 +105,7 @@ func (n *Node) ToClash() map[string]interface{} {
 		proxy["type"] = "trojan"
 		proxy["password"] = n.Password
 
-		proxy["sni"] = defaultIfEmpty(n.SNI, n.Server)
+		// proxy["sni"] = defaultIfEmpty(n.SNI, n.Server)
 		proxy["skip-cert-verify"] = n.AllowInsecure
 		if len(n.ALPN) > 0 {
 			proxy["alpn"] = n.ALPN

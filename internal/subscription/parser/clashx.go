@@ -110,5 +110,6 @@ func (p *ClashXParser) Parse(proxy *Proxy) (*model.Node, error) {
 		Protocol: "",
 		Settings: settings,
 		UDP:      proxy.UDP,
+		ALPN:     proxy.Alpn,
 	}, nil
 }
