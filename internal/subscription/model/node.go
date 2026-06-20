@@ -10,10 +10,12 @@ import (
 type NodeType string
 
 const (
-	TypeSS     NodeType = "ss"
-	TypeSSR    NodeType = "ssr"
-	TypeVmess  NodeType = "vmess"
-	TypeTrojan NodeType = "trojan"
+	TypeSS        NodeType = "ss"
+	TypeSSR       NodeType = "ssr"
+	TypeVmess     NodeType = "vmess"
+	TypeTrojan    NodeType = "trojan"
+	TypeHysteria2 NodeType = "hysteria2"
+	TypeAnyTLS    NodeType = "anytls"
 )
 
 // Node 定义统一的节点结构
@@ -110,11 +112,24 @@ func (n *Node) ToClash() map[string]interface{} {
 		if len(n.ALPN) > 0 {
 			proxy["alpn"] = n.ALPN
 		}
+		if n.UDP {
+			proxy["udp"] = true
+		}
+	case TypeHysteria2:
+		proxy["type"] = "hysteria2"
+		proxy["password"] = n.Password
 
-	}
+		proxy["sni"] = defaultIfEmpty(n.SNI, n.Server)
+		proxy["skip-cert-verify"] = n.AllowInsecure
 
-	if n.UDP {
-		proxy["udp"] = true
+	case TypeAnyTLS:
+		proxy["type"] = "anytls"
+		proxy["password"] = n.Password
+
+		// proxy["sni"] = defaultIfEmpty(n.SNI, n.Server)
+		proxy["skip-cert-verify"] = n.AllowInsecure
+		proxy["client-fingerprint"] = "random"
+
 	}
 
 	return proxy

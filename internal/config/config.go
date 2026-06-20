@@ -129,7 +129,12 @@ func ParseConfig(content []byte) (*ClashConfig, error) {
 				}
 				config.RuleSets = append(config.RuleSets, rule)
 			} else {
-				contentUrl := "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/refs/heads/master/Clash" + strings.SplitAfterN(parts[1], "/Clash", 2)[1]
+				contentUrl := parts[1]
+				// convert to online rule
+				if strings.HasPrefix(contentUrl, "rules/ACL4SSR/Clash/") {
+					contentUrl = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/refs/heads/master/Clash" +
+						strings.SplitAfterN(parts[1], "/Clash", 2)[1]
+				}
 				listContent, err := contentFetcher.Fetch(contentUrl)
 				if err != nil {
 					continue
