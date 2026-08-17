@@ -27,13 +27,13 @@ $ENV:GOOS="linux" ; $ENV:GOARCH="arm64"; go build -ldflags="-s -w" -o clash_meta
 
 $ENV:GOOS="linux" ; $ENV:GOARCH="arm64"; go build -ldflags="-s -w" -trimpath  -o clash_meta
  
-$ENV:GOOS="linux" ; $ENV:GOARCH="arm64"; $ENV:CGO_ENABLED="0"; go build -ldflags="-s -w" --trimpath -o clash_meta; ~\Downloads\upx-5.1.0-win64\upx.exe clash_meta
+$ENV:GOOS="linux" ; $ENV:GOARCH="arm64"; $ENV:CGO_ENABLED="0"; go build -ldflags="-s -w" --trimpath -o clash_meta; ~\Downloads\upx-5.2.0-win64\upx.exe clash_meta
 
-$ENV:GOOS="linux"; $ENV:GOARCH="arm64"; $ENV:CGO_ENABLED="0"; go build -ldflags="-s -w" -gcflags="all=-B" --trimpath -o clash_meta; ~\Downloads\upx-5.1.0-win64\upx.exe -5 clash_meta
+$ENV:GOOS="linux"; $ENV:GOARCH="arm64"; $ENV:CGO_ENABLED="0"; go build -ldflags="-s -w" -gcflags="all=-B" --trimpath -o clash_meta; ~\Downloads\upx-5.2.0-win64\upx.exe -5 clash_meta
 
-$ENV:GOOS="windows" ; $ENV:GOARCH="amd64";go build -ldflags="-s -w" --trimpath -o verge-mihomo.exe; ~\Downloads\upx-5.1.0-win64\upx.exe verge-mihomo.exe;
+$ENV:GOOS="windows" ; $ENV:GOARCH="amd64";go build -ldflags="-s -w" --trimpath -o verge-mihomo.exe; ~\Downloads\upx-5.2.0-win64\upx.exe verge-mihomo.exe;
 
-$ENV:GOOS="linux" ; $ENV:GOARCH="mipsle"; $env:GOMIPS="softfloat"; $ENV:CGO_ENABLED="0"; go build -x -v -ldflags="-s -w" --trimpath -o clash_meta; ~\Downloads\upx-5.1.0-win64\upx.exe clash_meta
+$ENV:GOOS="linux" ; $ENV:GOARCH="mipsle"; $env:GOMIPS="softfloat"; $ENV:CGO_ENABLED="0"; go build -x -v -ldflags="-s -w" --trimpath -o clash_meta; ~\Downloads\upx-5.2.0-win64\upx.exe clash_meta
 ```
 
 
