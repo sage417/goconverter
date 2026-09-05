@@ -26,6 +26,7 @@ type ProxyGroup struct {
 	Proxies   []string
 	URL       string // 用于 url-test
 	Interval  int    // 用于 url-test
+	Timeout   int    // 用于 url-test
 	Tolerance int    // 用于 url-test
 }
 
@@ -57,31 +58,42 @@ func parseProxyGroup(value string) ProxyGroup {
 			group.Proxies = append(group.Proxies, option)
 		}
 	} else if group.Type == "url-test" || group.Type == "fallback" || group.Type == "load-balance" {
-		parseTestOption := false
-		for _, option := range parts[2:] {
+		interval_idx := len(parts) - 2 - 1
+
+		for idx, option := range parts[2:] {
 			if option == "" {
 				continue
 			}
-			if strings.HasPrefix(option, "http://") || strings.HasPrefix(option, "https://") {
-				group.URL = option
-				parseTestOption = true
+
+			if idx < interval_idx-1 {
+				group.Proxies = append(group.Proxies, option)
 				continue
 			}
-			if parseTestOption {
+
+			if idx == interval_idx-1 {
+				group.URL = option
+				continue
+			}
+
+			if idx == interval_idx {
 				testOptions := strings.Split(option, ",")
 				if len(testOptions) > 0 {
 					if num, err := strconv.Atoi(testOptions[0]); err == nil {
 						group.Interval = num
 					}
 				}
+				// if len(testOptions) > 1 {
+				// 	if num, err := strconv.Atoi(testOptions[1]); err == nil {
+				// 		group.Timeout = num
+				// 	}
+				// }
 				if len(testOptions) > 2 {
 					if num, err := strconv.Atoi(testOptions[2]); err == nil {
 						group.Tolerance = num
 					}
 				}
+				break
 			}
-
-			group.Proxies = append(group.Proxies, option)
 		}
 	}
 
