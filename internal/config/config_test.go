@@ -8,7 +8,7 @@ import (
 
 func TestParseConfig(t *testing.T) {
 
-	testConfig, err := os.ReadFile("D:\\Projects\\goconverter\\test\\data\\ACL4SSR.ini")
+	testConfig, err := os.ReadFile("D:\\Projects\\goconverter\\test\\data\\ACL4SSR_Online.ini")
 	if err != nil {
 		t.Fatalf("读取配置文件失败: %v", err)
 	}
