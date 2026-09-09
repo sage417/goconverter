@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"goconverter/internal/config"
 	"goconverter/internal/subscription/model"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -116,8 +117,21 @@ func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashC
 		for _, name := range configProxyGroup.Proxies {
 			if after, found := strings.CutPrefix(name, "[]"); found {
 				proxyGroup.Proxies = append(proxyGroup.Proxies, after)
-			} else {
-				for _, nodeName := range nodeNames {
+				continue
+			}
+
+			if ".*" == name {
+				proxyGroup.Proxies = append(proxyGroup.Proxies, nodeNames...)
+				continue
+			}
+
+			re, err := regexp.Compile(name)
+			if err != nil {
+				continue
+			}
+
+			for _, nodeName := range nodeNames {
+				if re.MatchString(nodeName) {
 					proxyGroup.Proxies = append(proxyGroup.Proxies, nodeName)
 				}
 			}
