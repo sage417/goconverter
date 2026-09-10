@@ -3,7 +3,6 @@ package config
 
 import (
 	"fmt"
-	"goconverter/internal/fetcher"
 	"path"
 	"strconv"
 	"strings"
@@ -17,6 +16,17 @@ type ClashRule struct {
 	Pararm    string
 	Strategy  string
 	NoResolve string
+}
+
+type RuleProvider struct {
+	Name     string
+	Type     string
+	Url      string
+	Path     string
+	Interval int
+	Proxy    string
+	Behavior string
+	Format   string
 }
 
 // ProxyGroup 表示一个代理组配置
@@ -34,6 +44,7 @@ type ProxyGroup struct {
 type ClashConfig struct {
 	RuleSets        []ClashRule
 	ProxyGroups     []ProxyGroup
+	RuleProviders   []RuleProvider
 	EnableGenerator bool
 	OverwriteRules  bool
 }
@@ -114,66 +125,81 @@ func ParseConfig(content []byte) (*ClashConfig, error) {
 	section := cfg.Section("custom")
 	config := &ClashConfig{}
 
-	contentFetcher := fetcher.NewFetcher()
-
 	// 解析 ruleset
 	rulesetKeys := section.Key("ruleset").ValueWithShadows()
 	for _, ruleStr := range rulesetKeys {
-		parts := strings.SplitN(ruleStr, ",", 2)
-		if len(parts) >= 2 {
-			// ruleset=🎯 全球直连,[]GEOIP,CN
-			// ruleset=🐟 漏网之鱼,[]FINAL
-
-			//  - GEOIP,CN,🎯 全球直连
-			//  - MATCH,🐟 漏网之鱼
-			if after, found := strings.CutPrefix(parts[1], "[]"); found {
-				typeAndParam := strings.SplitN(after, ",", 2)
-				ruleType := typeAndParam[0]
-				ruleParm := ""
-				if len(typeAndParam) > 1 {
-					ruleParm = typeAndParam[1]
-				}
-				rule := ClashRule{
-					Strategy:  parts[0],
-					Type:      ruleType,
-					Pararm:    ruleParm,
-					NoResolve: "",
-				}
-				config.RuleSets = append(config.RuleSets, rule)
-			} else {
-				contentUrl := parts[1]
-				// convert to online rule
-				if strings.HasPrefix(contentUrl, "rules/ACL4SSR/Clash/") {
-					contentUrl = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/refs/heads/master/Clash" +
-						strings.SplitAfterN(parts[1], "/Clash", 2)[1]
-				}
-				listContent, err := contentFetcher.Fetch(contentUrl)
-				if err != nil {
-					continue
-				}
-				for _, line := range strings.Split(string(listContent), "\n") {
-					if strings.HasPrefix(line, "#") || line == "" {
-						continue
-					}
-					lineParam := strings.SplitN(line, ",", 3)
-					param := ""
-					if len(lineParam) > 1 {
-						param = lineParam[1]
-					}
-					noReslove := ""
-					if len(lineParam) > 2 {
-						noReslove = lineParam[2]
-					}
-					rule := ClashRule{
-						Strategy:  parts[0],
-						Type:      lineParam[0],
-						Pararm:    param,
-						NoResolve: noReslove,
-					}
-					config.RuleSets = append(config.RuleSets, rule)
-				}
-			}
+		parts := strings.SplitN(ruleStr, ",", 4)
+		if len(parts) < 2 {
+			continue
 		}
+		// inline
+		// ruleset=🎯 全球直连,[]GEOIP,CN
+		// ruleset=🐟 漏网之鱼,[]FINAL
+
+		//  - GEOIP,CN,🎯 全球直连
+		//  - MATCH,🐟 漏网之鱼
+		if ruleType, found := strings.CutPrefix(parts[1], "[]"); found {
+			var ruleParm, noResolve string
+			if len(parts) > 2 {
+				ruleParm = parts[2]
+			}
+
+			if len(parts) > 3 {
+				noResolve = parts[3]
+			}
+			rule := ClashRule{
+				Strategy:  parts[0],
+				Type:      ruleType,
+				Pararm:    ruleParm,
+				NoResolve: noResolve,
+			}
+			config.RuleSets = append(config.RuleSets, rule)
+		} else {
+			// remote or local file
+			var contentUrl, behavior string
+			// convert to online rule
+			interval := 3600 * 24
+
+			if after, found := strings.CutPrefix(parts[1], "clash-"); found {
+				behavior, contentUrl, _ = strings.Cut(after, ":")
+			} else {
+				behavior = "classical"
+				contentUrl = parts[1]
+			}
+
+			if behavior == "classic" {
+				behavior = "classical"
+			}
+
+			if strings.HasPrefix(contentUrl, "rules/ACL4SSR/Clash/") {
+				contentUrl = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/refs/heads/master/Clash" +
+					strings.SplitAfterN(parts[1], "/Clash", 2)[1]
+			}
+			// use cdn to fetch content
+			contentUrl = strings.Replace(contentUrl, "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/refs/heads/master",
+				"https://cdn.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master", 1)
+
+			fileName := path.Base(contentUrl)
+			name, format, _ := strings.Cut(fileName, ".")
+
+			ruleProvider := RuleProvider{
+				Name:     name,
+				Type:     "http",
+				Url:      contentUrl,
+				Interval: interval,
+				Behavior: behavior,
+				Format:   format,
+			}
+
+			config.RuleProviders = append(config.RuleProviders, ruleProvider)
+			config.RuleSets = append(config.RuleSets, ClashRule{
+				Strategy:  parts[0],
+				Type:      "RULE-SET",
+				Pararm:    name,
+				NoResolve: "",
+			})
+		}
+
 	}
 
 	// 解析 custom_proxy_group

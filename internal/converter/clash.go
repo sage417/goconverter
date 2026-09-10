@@ -34,6 +34,7 @@ type ClashConfig struct {
 	Proxies            []map[string]interface{} `yaml:"proxies"`
 	ProxyGroups        []*ProxyGroup            `yaml:"proxy-groups"`
 	Rules              []string                 `yaml:"rules"`
+	RuleProviders      map[string]RuleProvider  `yaml:"rule-providers"`
 }
 
 // ClashProxy 定义单个代理服务器配置
@@ -70,6 +71,14 @@ type ProxyGroup struct {
 	Interval  int      `yaml:"interval,omitempty"`  // 用于 url-test
 	Tolerance int      `yaml:"tolerance,omitempty"` // 用于 url-test
 	Proxies   []string `yaml:"proxies"`
+}
+
+type RuleProvider struct {
+	Type     string `yaml:"type"`
+	Behavior string `yaml:"behavior"`
+	Url      string `yaml:"url"`
+	Format   string `yaml:"format"`
+	Interval int    `yaml:"interval"`
 }
 
 func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashConfig) (string, error) {
@@ -143,6 +152,18 @@ func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashC
 	// 添加规则
 	for _, rule := range c.getRules(clashConfig) {
 		config.Rules = append(config.Rules, rule)
+	}
+
+	config.RuleProviders = make(map[string]RuleProvider)
+	for _, ruleProvider := range clashConfig.RuleProviders {
+		config.RuleProviders[ruleProvider.Name] = RuleProvider{
+
+			Type:     ruleProvider.Type,
+			Behavior: ruleProvider.Behavior,
+			Url:      ruleProvider.Url,
+			Format:   ruleProvider.Format,
+			Interval: ruleProvider.Interval,
+		}
 	}
 
 	// 转换为YAML
