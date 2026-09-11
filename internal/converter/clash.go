@@ -112,6 +112,8 @@ func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashC
 		}
 	}
 
+	emptyProxyGroupName := make([]string, 0)
+
 	// 添加代理组
 	for _, configProxyGroup := range clashConfig.ProxyGroups {
 		proxyGroup := &ProxyGroup{
@@ -123,18 +125,20 @@ func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashC
 			Proxies:   make([]string, 0),
 		}
 
-		for _, name := range configProxyGroup.Proxies {
-			if after, found := strings.CutPrefix(name, "[]"); found {
+		for _, pattern := range configProxyGroup.Proxies {
+			if after, found := strings.CutPrefix(pattern, "[]"); found {
 				proxyGroup.Proxies = append(proxyGroup.Proxies, after)
 				continue
 			}
 
-			if ".*" == name {
+			if ".*" == pattern {
 				proxyGroup.Proxies = append(proxyGroup.Proxies, nodeNames...)
 				continue
 			}
 
-			re, err := regexp.Compile(name)
+			pattern = strings.TrimPrefix(pattern, "(?<!尼|-)")
+
+			re, err := regexp.Compile(pattern)
 			if err != nil {
 				continue
 			}
@@ -146,7 +150,30 @@ func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashC
 			}
 		}
 
-		config.ProxyGroups = append(config.ProxyGroups, proxyGroup)
+		if len(proxyGroup.Proxies) > 0 {
+			config.ProxyGroups = append(config.ProxyGroups, proxyGroup)
+		} else {
+			emptyProxyGroupName = append(emptyProxyGroupName, proxyGroup.Name)
+		}
+	}
+
+	qIdx := 0
+	for qIdx < len(emptyProxyGroupName) {
+		emptyProxyName := emptyProxyGroupName[qIdx]
+		qIdx++
+
+		for _, proxyGroup := range config.ProxyGroups {
+			// delete once
+			nameIdx := slices.Index(proxyGroup.Proxies, emptyProxyName)
+			if nameIdx == -1 {
+				continue
+			}
+			proxyGroup.Proxies = slices.Delete(proxyGroup.Proxies, nameIdx, nameIdx+1)
+
+			if len(proxyGroup.Proxies) == 0 {
+				emptyProxyGroupName = append(emptyProxyGroupName, proxyGroup.Name)
+			}
+		}
 	}
 
 	// 添加规则

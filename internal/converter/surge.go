@@ -38,7 +38,8 @@ func (s *SurgeConverter) Convert(nodes []*model.Node) (string, error) {
 			return "", err
 		}
 		if proxyStr, ok := proxy.(string); ok {
-			builder.WriteString(proxyStr + "\n")
+			builder.WriteString(proxyStr)
+			builder.WriteString("\n")
 		}
 	}
 
@@ -46,14 +47,16 @@ func (s *SurgeConverter) Convert(nodes []*model.Node) (string, error) {
 	builder.WriteString("\n[Proxy Group]\n")
 	builder.WriteString("🚀 节点选择 = select,DIRECT")
 	for _, node := range nodes {
-		builder.WriteString("," + node.Name)
+		builder.WriteString(",")
+		builder.WriteString(node.Name)
 	}
 	builder.WriteString("\n\n")
 
 	// 写入规则
 	builder.WriteString("[Rule]\n")
 	for _, rule := range s.getRules() {
-		builder.WriteString(rule + "\n")
+		builder.WriteString(rule)
+		builder.WriteString("\n")
 	}
 
 	return builder.String(), nil

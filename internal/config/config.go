@@ -158,17 +158,16 @@ func ParseConfig(content []byte) (*ClashConfig, error) {
 			// remote or local file
 			var contentUrl, behavior string
 			// convert to online rule
-			interval := 3600 * 24
+			interval := 3600 * 24 * 7
 
 			if after, found := strings.CutPrefix(parts[1], "clash-"); found {
 				behavior, contentUrl, _ = strings.Cut(after, ":")
+				if behavior == "classic" {
+					behavior = "classical"
+				}
 			} else {
 				behavior = "classical"
 				contentUrl = parts[1]
-			}
-
-			if behavior == "classic" {
-				behavior = "classical"
 			}
 
 			if strings.HasPrefix(contentUrl, "rules/ACL4SSR/Clash/") {
