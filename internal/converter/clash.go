@@ -136,7 +136,7 @@ func (c *ClashConverter) Convert(nodes []*model.Node, clashConfig *config.ClashC
 				continue
 			}
 
-			pattern = strings.TrimPrefix(pattern, "(?<!尼|-)")
+			pattern = strings.ReplaceAll(pattern, "(?<!尼|-)", "")
 
 			re, err := regexp.Compile(pattern)
 			if err != nil {
@@ -216,14 +216,14 @@ func (c *ClashConverter) getRules(clashConfig *config.ClashConfig) []string {
 		// 	continue
 		// }
 		if !slices.Contains([]string{"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD",
-			"GEOIP", "IP-CIDR", "IP-CIDR6", "SRC-IP-CIDR", "SRC-PORT", "DST-PORT",
+			"GEOSITE", "GEOIP", "IP-CIDR", "IP-CIDR6", "SRC-IP-CIDR", "SRC-PORT", "DST-PORT",
 			"PROCESS-NAME", "PROCESS-PATH", "IPSET", "RULE-SET", "SCRIPT", "MATCH"}, ruleset.Type) {
 			continue
 		}
 		rulesetslice := make([]string, 0)
 		rulesetslice = append(rulesetslice, ruleset.Type)
-		if ruleset.Pararm != "" {
-			rulesetslice = append(rulesetslice, ruleset.Pararm)
+		if ruleset.Param != "" {
+			rulesetslice = append(rulesetslice, ruleset.Param)
 		}
 		rulesetslice = append(rulesetslice, ruleset.Strategy)
 		if ruleset.NoResolve != "" {

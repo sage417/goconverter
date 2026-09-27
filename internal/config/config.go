@@ -13,7 +13,7 @@ import (
 // ClashRule 表示一个规则配置
 type ClashRule struct {
 	Type      string
-	Pararm    string
+	Param     string
 	Strategy  string
 	NoResolve string
 }
@@ -150,7 +150,7 @@ func ParseConfig(content []byte) (*ClashConfig, error) {
 			rule := ClashRule{
 				Strategy:  parts[0],
 				Type:      ruleType,
-				Pararm:    ruleParm,
+				Param:     ruleParm,
 				NoResolve: noResolve,
 			}
 			config.RuleSets = append(config.RuleSets, rule)
@@ -194,7 +194,7 @@ func ParseConfig(content []byte) (*ClashConfig, error) {
 			config.RuleSets = append(config.RuleSets, ClashRule{
 				Strategy:  parts[0],
 				Type:      "RULE-SET",
-				Pararm:    name,
+				Param:     name,
 				NoResolve: "",
 			})
 		}
